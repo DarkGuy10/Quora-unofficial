@@ -1,4 +1,4 @@
-const { app, session, BrowserWindow, shell, nativeTheme, ipcMain } = require('electron');
+const { app, session, BrowserWindow, shell, nativeTheme, ipcMain ,  Tray, Menu} = require('electron');
 const path = require('path');
 const Store = require('./BackgroundProcess/store.js')
 
@@ -13,11 +13,18 @@ const createWindow = () => {
 	mainWindow = new BrowserWindow({
     	width: 800,
     	height: 600,
-    	icon: __dirname + '/src/icons/logo.icns'
+    	icon: __dirname + '/Icons/logo.icns'
 	});
 	mainWindow.maximize();
   	mainWindow.loadURL('http://quora.com', {userAgent: 'Chrome'});
   	mainWindow.setMenu(null);
+  	mainWindow.on('closed', () => {
+  		mainWindow = null;
+  		if (background) {
+			background.webContents.send('changed-main-window', 'closed');
+  		}
+  	});
+
   	mainWindow.webContents.on('new-window', (event, url) => {
     	event.preventDefault();
     	mainWindow.loadURL(url);
@@ -32,15 +39,20 @@ const store = new Store({
   }
 });
 
-app.on('ready', createWindow);
-app.on('ready', async () => { // Loading extensions
+async function loadExtensions() {
 //	await session.defaultSession.loadExtension(path.join(__dirname, 'MinorAddons'))
 	await session.defaultSession.loadExtension(path.join(__dirname, 'AppSettings'));
-	var theme = store.get('theme');
-	if(((theme == 'default') && nativeTheme.shouldUseDarkColors) || theme == 'dark'){
-		await session.defaultSession.loadExtension(path.join(__dirname, 'DarkTheme'));
-	} 
-});
+}
+
+function openMainWindow() {
+	createWindow();
+	loadExtensions();
+	if (background) {
+		background.webContents.send('changed-main-window', 'opened');
+	}
+}
+
+app.on('ready', openMainWindow);
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -48,6 +60,7 @@ app.on('ready', async () => { // Loading extensions
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
+    trayIcon.destroy();
   }
 });
 
@@ -111,31 +124,38 @@ contextMenu({
 
 
 // Adding a background renderer process that will take care of
-//		1. Saving app settings to appData
-//		2. Setting up the tray icon
-//		3. Sending desktop notifications
-//		4. Automatically updating the app
+//	+	1. Saving app settings to appData
+//	-	2. Setting up the tray icon
+//	/	3. Sending desktop notifications
+//	/	4. Automatically updating the app
 //
 // Damn, why didnt I think of this before? Baka me T_T
-/*
+
 var background;
 const createBackground = () => {
 	background = new BrowserWindow({
-    	show: false,
+		show: false,
     	webPreferences: {
       		nodeIntegration: true,
       		enableRemoteModule: true
     	}
 	});
 	background.loadURL(`file://${__dirname}/BackgroundProcess/BackgroundProcess.html`);
+	background.on('closed', () => {
+		background = null;
+	});
 };
 app.on('ready', createBackground);
 
-
 ipcMain.on('execute-JS', (event, arg) => {
-  mainWindow.webContents.executeJavaScript(arg).then(result => {
-  	event.returnValue = result;
-  });
+	try{
+		mainWindow.webContents.executeJavaScript(arg).then(result => {
+			event.returnValue = result;
+		});	
+	} catch {
+		event.returnValue = 'error';
+	}
+
 })
 
 ipcMain.on('preferences-changed', (event, changed) => {
@@ -144,4 +164,42 @@ ipcMain.on('preferences-changed', (event, changed) => {
 		app.quit();
 	}
 })
-*/
+
+// Adding the tray icon
+var trayIcon;
+
+const addTrayIcon = () => {
+	const iconPath = path.join(__dirname, 'Icons/logo.png');
+	trayIcon = new Tray(iconPath);
+	const trayMenu = Menu.buildFromTemplate([
+	{
+		label: 'Open Quora',
+		click: () => {
+			if (!mainWindow) {
+				openMainWindow();
+			}
+		}
+	},
+	{
+		type: 'separator'
+	},
+	{
+		label: 'Help',
+		click: () => {
+			shell.openExternal('https://darkguy10.github.io/Quora/');
+		}
+	},
+	{
+		type: 'separator',
+	},
+	{
+		label: 'Quit',
+		click: () => {
+			app.quit();
+		}
+	}
+	]);
+	trayIcon.setContextMenu(trayMenu);
+};
+
+app.on('ready', addTrayIcon);

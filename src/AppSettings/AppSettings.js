@@ -33,13 +33,7 @@ document.body.appendChild(openSettings);
 
 var settingsForm = document.createElement('form');
 settingsInnerWrapper.appendChild(settingsForm);
-settingsForm.innerHTML += '<p class = "settingsCategory">Theme:</p>';
-settingsForm.innerHTML += '<input type = "radio" name = "theme" value = "dark" id = "darkTheme">';
-settingsForm.innerHTML += '<label for = "darkTheme">Dark</label><br>';
-settingsForm.innerHTML += '<input type = "radio" name = "theme" value = "light" id = "lightTheme">';
-settingsForm.innerHTML += '<label for = "lightTheme">Light</label><br>';
-settingsForm.innerHTML += '<input type = "radio" name = "theme" value = "default" id = "defaultTheme">';
-settingsForm.innerHTML += '<label for = "defaultTheme">System Theme</label><br>';
+settingsForm.innerHTML += '<p class = "settingsCategory">Stelf Mode:</p>';
 
 var settingsSubmit = document.createElement('button');
 settingsSubmit.innerText = "Save";
@@ -49,19 +43,19 @@ settingsForm.appendChild(settingsSubmit);
 
 settingsSubmit.addEventListener('click', (event) => {
     event.preventDefault();
-    var theme = settingsForm["theme"].value;
-    localStorage.setItem("theme", theme);
+//    var theme = settingsForm["theme"].value;
+//    localStorage.setItem("theme", theme);
     settingsOverlay.style.display = 'none';
 });
 
 function restoreOptions() {
-    let theme = localStorage.getItem("theme");
-    if (theme) {
-        document.getElementById(theme + 'Theme').setAttribute('checked', true);
-    } else {
-        document.getElementById('defaultTheme').setAttribute('checked', true);
-        localStorage.setItem("theme", "default");
-    }
+//    let theme = localStorage.getItem("theme");
+//    if (theme) {
+//        document.getElementById(theme + 'Theme').setAttribute('checked', true);
+//    } else {
+//        document.getElementById('defaultTheme').setAttribute('checked', true);
+//        localStorage.setItem("theme", "default");
+//    }
 }
 
 restoreOptions();
