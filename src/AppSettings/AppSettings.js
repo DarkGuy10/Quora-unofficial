@@ -52,7 +52,6 @@ settingsSubmit.addEventListener('click', (event) => {
     var theme = settingsForm["theme"].value;
     localStorage.setItem("theme", theme);
     settingsOverlay.style.display = 'none';
-    alert('Restart the app for changes to take place!');
 });
 
 function restoreOptions() {

@@ -1,6 +1,6 @@
-const { app, session, BrowserWindow, shell, nativeTheme } = require('electron');
+const { app, session, BrowserWindow, shell, nativeTheme, ipcMain } = require('electron');
 const path = require('path');
-const Store = require('./AppSettings/store.js')
+const Store = require('./BackgroundProcess/store.js')
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -12,7 +12,8 @@ const createWindow = () => {
 	// Create the browser window.
 	mainWindow = new BrowserWindow({
     	width: 800,
-    	height: 600
+    	height: 600,
+    	icon: __dirname + '/src/icons/logo.icns'
 	});
 	mainWindow.maximize();
   	mainWindow.loadURL('http://quora.com', {userAgent: 'Chrome'});
@@ -39,14 +40,6 @@ app.on('ready', async () => { // Loading extensions
 	if(((theme == 'default') && nativeTheme.shouldUseDarkColors) || theme == 'dark'){
 		await session.defaultSession.loadExtension(path.join(__dirname, 'DarkTheme'));
 	} 
-	mainWindow.webContents.executeJavaScript('localStorage.getItem("theme");')
-			.then(result => {
-				if(theme != result){
-					store.set('theme', result);
-					app.relaunch();
-					app.exit();
-				}
-			})
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -110,7 +103,45 @@ contextMenu({
 	],
 	showSaveImage: true,
 	showSaveImageAs: true,
-	showInspectElement: false,
+//	showInspectElement: false,
 	showSearchWithGoogle: false,
 	showLookUpSelection: false
 });
+
+
+
+// Adding a background renderer process that will take care of
+//		1. Saving app settings to appData
+//		2. Setting up the tray icon
+//		3. Sending desktop notifications
+//		4. Automatically updating the app
+//
+// Damn, why didnt I think of this before? Baka me T_T
+/*
+var background;
+const createBackground = () => {
+	background = new BrowserWindow({
+    	show: false,
+    	webPreferences: {
+      		nodeIntegration: true,
+      		enableRemoteModule: true
+    	}
+	});
+	background.loadURL(`file://${__dirname}/BackgroundProcess/BackgroundProcess.html`);
+};
+app.on('ready', createBackground);
+
+
+ipcMain.on('execute-JS', (event, arg) => {
+  mainWindow.webContents.executeJavaScript(arg).then(result => {
+  	event.returnValue = result;
+  });
+})
+
+ipcMain.on('preferences-changed', (event, changed) => {
+	if (changed == 'theme') {
+		app.relaunch();
+		app.quit();
+	}
+})
+*/
