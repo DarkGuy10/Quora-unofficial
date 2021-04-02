@@ -1,15 +1,15 @@
 {
 
   "manifest_version": 2,
-  "name": "DarkTheme",
+  "name": "MinorAddons",
   "version": "0.0",
 
   "description": "MinorAddons",
 
   "content_scripts": [
     {
-      "matches": ["*://*.quora.com/*"], 
-      "js": ["MinorAddons.js" , "@fortawesome/fontawesome-free/js/all.js"],
+      "matches": ["<all_urls>"], 
+      "js": ["MinorAddons.js"],
       "css" : ["MinorAddons.css"]
     }
   ]

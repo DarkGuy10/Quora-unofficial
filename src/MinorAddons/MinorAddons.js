@@ -1,5 +1,5 @@
 // Go back, forward, and reload btns
-
+/*
 var addedNavBar = document.createElement('div');
 addedNavBar.classList.add('addedNavBar');
 
@@ -31,3 +31,4 @@ forwardBtn.onclick = () => {
 reloadBtn.onclick = () => {
 	window.reload();
 };
+*/

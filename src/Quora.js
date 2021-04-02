@@ -25,9 +25,19 @@ const createWindow = () => {
   		}
   	});
 
+  	// Keep only one app window
   	mainWindow.webContents.on('new-window', (event, url) => {
     	event.preventDefault();
     	mainWindow.loadURL(url);
+	});
+
+  	// Open external links in the browser
+  	// will-navigate shud've been better but it doesnt work :/
+	mainWindow.webContents.on('did-navigate', (event, url) => {
+		if (!url.includes('www.quora.com')) {
+			shell.openExternal(url);
+			mainWindow.webContents.goBack();
+		}
 	});
 };
 
@@ -40,7 +50,7 @@ const store = new Store({
 });
 
 async function loadExtensions() {
-//	await session.defaultSession.loadExtension(path.join(__dirname, 'MinorAddons'))
+	await session.defaultSession.loadExtension(path.join(__dirname, 'MinorAddons'));
 	await session.defaultSession.loadExtension(path.join(__dirname, 'AppSettings'));
 }
 
@@ -68,7 +78,7 @@ app.on('activate', () => {
 	// On OS X it's common to re-create a window in the app when the
 	// dock icon is clicked and there are no other windows open.
 	if (BrowserWindow.getAllWindows().length === 0) {
-		createWindow();
+		openMainWindow();
 	}
 });
 
@@ -203,3 +213,17 @@ const addTrayIcon = () => {
 };
 
 app.on('ready', addTrayIcon);
+
+/*
+// Adding an extra background window for push notifications notifications
+var notifWindow;
+const createNotif = () => {
+	notifWindow = new BrowserWindow({
+		show: false,
+	});
+	notifWindow.loadURL(`quora.com/notifications`);
+	notifWindow.on('closed', () => {
+		notifWindow = null;
+	});
+};
+*/
