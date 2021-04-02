@@ -1,3 +1,4 @@
+
 #	
 #	This python script updates the app to latest available version.
 #	Current version can be found in package.json and package-lock.json
